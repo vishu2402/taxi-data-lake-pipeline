@@ -3,13 +3,17 @@ import re
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_date, lit
 
+access_key = os.getenv("MINIO_ACCESS_KEY", "admin") 
+secret_key = os.getenv("MINIO_SECRET_KEY", "password")
+minio_endpoint = os.getenv("MINIO_ENDPOINT", "http://127.0.0.1:9000")
+
 spark = (
     SparkSession.builder
     .appName("DynamicIncrementalPipeline")
     .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262")
-    .config("spark.hadoop.fs.s3a.endpoint", "http://127.0.0.1:9000")
-    .config("spark.hadoop.fs.s3a.access.key", "admin")
-    .config("spark.hadoop.fs.s3a.secret.key", "password")
+    .config("spark.hadoop.fs.s3a.endpoint", minio_endpoint)
+    .config("spark.hadoop.fs.s3a.access.key", access_key)
+    .config("spark.hadoop.fs.s3a.secret.key", secret_key)
     .config("spark.hadoop.fs.s3a.path.style.access", "true")
     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")

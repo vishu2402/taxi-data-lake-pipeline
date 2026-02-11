@@ -1,12 +1,17 @@
 import duckdb
 import sys
+import os
+
+access_key = os.getenv("MINIO_ACCESS_KEY", "admin")
+secret_key = os.getenv("MINIO_SECRET_KEY", "password")
+endpoint = os.getenv("MINIO_ENDPOINT", "127.0.0.1:9000")
 
 con = duckdb.connect()
 
 con.execute("INSTALL httpfs; LOAD httpfs;")
-con.execute("SET s3_endpoint='127.0.0.1:9000';")
-con.execute("SET s3_access_key_id='admin';")
-con.execute("SET s3_secret_access_key='password';")
+con.execute(f"SET s3_endpoint='{endpoint.replace('http://', '')}';")
+con.execute(f"SET s3_access_key_id='{access_key}';")
+con.execute(f"SET s3_secret_access_key='{secret_key}';")
 con.execute("SET s3_use_ssl=false; SET s3_url_style='path';")
 
 path = "s3://silver-clean/orders_parquet_table/**/*.parquet"
@@ -53,11 +58,10 @@ reports = {
 arg = sys.argv[1] if len(sys.argv) > 1 else "summary"
 
 if arg in reports:
-    print(f"Running {arg.upper()} Report on 50 Million Records...")
+    print(f"\n--- Running {arg.upper()} Report ---")
     try:
         df = con.execute(reports[arg]).df()
-        print("-" * 50)
-        print(df)
+        print(df.to_string(index=False))
         print("-" * 50)
     except Exception as e:
         print(f"Query Failed: {e}")
